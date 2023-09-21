@@ -9,14 +9,14 @@ const AddTask = ({onAdd}) => {
         e.preventDefault()
 
         if(!text){
-            alert("please add task")
+            alert("please add task text")
         }
-
-        onAdd({text,day,reminder})
-        setText("")
-        setDay("")
-        setReminder(false)
-
+        else {
+            onAdd({text,day,reminder})
+            setText("")
+            setDay("")
+            setReminder(false)
+        }
     }
 
   return (
@@ -28,7 +28,7 @@ const AddTask = ({onAdd}) => {
 
         <div className='form-control'>
             <label>Day & Time</label>
-            <input type='text' placeholder='Add Day & Time' value={day} onChange={(e) => setDay(e.target.value)} />
+            <input type="date" placeholder='Add Date' value={day} onChange={(e) => setDay(e.target.value)} />
         </div>
 
         <div className='form-control form-control-check'>
