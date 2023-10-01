@@ -1,28 +1,59 @@
 import AddTask from "./components/AddTask";
 import Header from "./components/Header";
 import Tasks from "./components/Tasks";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import useTasks from "./components/useTasks";
 import Footer from "./components/Footer";
-import { taskData } from "./mock/db";
 function App() {
   const [showAddTask, setShowAddTask] = useState(false);
-  const [tasks, setTasks] = useState(taskData);
+  const tasksArray = useTasks();
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    setTasks(tasksArray);
+  }, [tasksArray]);
 
   //Add Task
-  const addTask = (task) => {
-    setTasks([...tasks, task]);
+  const addTask = async (task) => {
+    const res = await fetch("http://localhost:5000/todos", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(task),
+    });
+    const data = await res.json();
+    setTasks([...tasks, data]);
   };
 
   //delete task
-  const deleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+  const deleteTask = async (id) => {
+    const res = await fetch(`http://localhost:5000/todos/${id}`, {
+      method: "DELETE",
+    });
+    res.status === 200
+      ? setTasks(tasks.filter((task) => task._id !== id))
+      : alert("Error Deleting This Task");
   };
 
   // Add toggle reminder if double clicked on any task
-  const toggleReminder = (id) => {
+  const toggleFinished = async (id) => {
+    const updatedTask = tasks.filter((task) => task._id === id && {...task} );
+    let updatedTaskObject = updatedTask[0]
+    updatedTaskObject = {...updatedTaskObject , finished : !updatedTaskObject.finished}
+
+    const res = await fetch(`http://localhost:5000/todos/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(updatedTaskObject),
+    });
+
+    const data = await res.json();
     setTasks(
       tasks.map((task) =>
-        task.id === id ? { ...task, reminder: !task.reminder } : task
+        task._id === id ? { ...task, finished: data.finished } : task
       )
     );
   };
@@ -36,7 +67,7 @@ function App() {
       <Header title={"Task Tracker"} onClick={onAdd} showAdd={showAddTask} />
       {showAddTask && <AddTask onAdd={addTask} />}
       {tasks.length > 0 ? (
-        <Tasks tasks={tasks} onDelete={deleteTask} onToggle={toggleReminder} />
+        <Tasks tasks={tasks} onDelete={deleteTask} onToggle={toggleFinished} />
       ) : (
         "No Tasks To Show"
       )}
